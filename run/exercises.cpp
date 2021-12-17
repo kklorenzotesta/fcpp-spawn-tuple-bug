@@ -9,6 +9,15 @@
 //! Importing the FCPP library.
 #include "lib/fcpp.hpp"
 
+namespace std {
+    template <>
+    struct hash<fcpp::tuple<fcpp::device_t>> {
+        size_t operator()(fcpp::tuple<fcpp::device_t> const& k) const {
+            return 0;
+        }
+    };
+}
+
 /**
  * @brief Namespace containing all the objects in the FCPP library.
  */
@@ -90,30 +99,9 @@ constexpr size_t communication_range = 100;
 
 //! @brief Main function.
 MAIN() {
-    // import tag names in the local scope.
-    using namespace tags;
-
-    // sample code below (substitute with the solution to the exercises)...
-
-    // usage of aggregate constructs
-    field<double> f = nbr(CALL, 4.2); // nbr with single value
-    int x = old(CALL, 0, [&](int a){  // old with initial value and update function
-        return a+1;
-    });
-    int y = nbr(CALL, 0, [&](field<int> a){ // nbr with initial value and update function
-        return min_hood(CALL, a);
-    });
-
-    // usage of node physics
-    node.velocity() = -node.position()/communication_range;
-
-    // usage of node storage
-    node.storage(node_size{}) = 10;
-    node.storage(node_color{}) = color(GREEN);
-    node.storage(node_shape{}) = shape::sphere;
 }
 //! @brief Export types used by the main function (update it when expanding the program).
-FUN_EXPORT main_t = export_list<double, int>;
+FUN_EXPORT main_t = export_list<size_t, spawn_t<tuple<device_t>,int>>;
 
 } // namespace coordination
 
@@ -157,6 +145,7 @@ using aggregator_t = aggregators<
 //! @brief The general simulation options.
 DECLARE_OPTIONS(list,
     parallel<true>,      // multithreading enabled on node rounds
+    message_size<true>,
     synchronised<false>, // optimise for asynchronous networks
     program<coordination::main>,   // program to be run (refers to MAIN above)
     exports<coordination::main_t>, // export type list (types used in messages)
